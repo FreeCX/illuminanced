@@ -13,10 +13,6 @@ impl Config {
         Config { table: table }
     }
 
-    pub fn log_to_syslog(&self) -> bool {
-        self.get_str("daemonize", "log_to").map_or(true, |v| v == "syslog")
-    }
-
     pub fn log_filename(&self) -> &str {
         self.get_str("daemonize", "log_to").unwrap_or("/var/log/illuminanced.log")
     }

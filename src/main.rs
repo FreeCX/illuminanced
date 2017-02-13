@@ -1,5 +1,4 @@
 extern crate daemonize;
-extern crate syslog;
 extern crate simplelog;
 extern crate getopts;
 extern crate toml;
@@ -11,7 +10,6 @@ extern crate log;
 use std::io::prelude::*;
 use std::fs::{File, OpenOptions};
 use daemonize::Daemonize;
-use syslog::Facility;
 use simplelog::{WriteLogger, LogLevelFilter, Config as LoggerConfig, TermLogger};
 use kalman::Kalman;
 use config::Config;
@@ -232,7 +230,7 @@ fn run() -> Result<(), ErrorCode> {
     if matches.opt_present("no-fork") {
         let _ = TermLogger::init(LogLevelFilter::Debug, LoggerConfig::default());
     } else {
-        if matches.opt_present("log") || !config.log_to_syslog() {
+        if matches.opt_present("log") {
             let log_filename = matches.opt_str("log").unwrap_or(config.log_filename().to_string());
             let log_file = OpenOptions::new().append(true)
                 .create(true)
@@ -244,13 +242,6 @@ fn run() -> Result<(), ErrorCode> {
             WriteLogger::init(config.log_level(), LoggerConfig::default(), log_file).map_err(|e| {
                     println!("Cannot create logger: {}", e);
                     ErrorCode::TracerCreateError
-                })?;
-        } else {
-            syslog::init(Facility::LOG_DAEMON,
-                         config.log_level(),
-                         Some("illuminanced")).map_err(|e| {
-                    println!("Cannot open syslog: {}", e);
-                    ErrorCode::SyslogOpenError
                 })?;
         }
     }
